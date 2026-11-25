@@ -1,0 +1,117 @@
+# The documents benchmarked. Each is pinned to a commit so every run lints identical bytes.
+# Documents are downloaded at run time from the provider's own repo, never stored here.
+# To add a provider: add an entry with ref: main, then run: npm run pin
+documents:
+  - id: petstore
+    provider: Swagger Petstore
+    repo: swagger-api/swagger-petstore
+    path: src/main/resources/openapi.yaml
+    ref: 5cb909fc7780bc708151bce0014939acba8b212a
+    openapi: "3.0"
+    tier: xs
+    bytes: 23165
+  - id: digitalocean
+    provider: DigitalOcean
+    repo: digitalocean/openapi
+    path: specification/DigitalOcean-public.v2.yaml
+    tree: specification   # split across many files: fetch the whole folder
+    ref: f4a3fde4f3d0a20e9d6df2ada3d1d429e6fdb095
+    openapi: "3.0"
+    tier: s
+    bytes: 148138
+  - id: adyen-checkout
+    provider: Adyen Checkout
+    repo: Adyen/adyen-openapi
+    path: json/CheckoutService-v71.json
+    ref: 614b01ed6aaa91aa15c15329986a2357cb8242fa
+    openapi: "3.1"
+    tier: m
+    bytes: 941342
+  - id: discord
+    provider: Discord
+    repo: discord/discord-api-spec
+    path: specs/openapi.json
+    ref: 654230017d4f5ee3e6a59a769ffc40cf61001e3f
+    openapi: "3.1"
+    tier: m
+    bytes: 1208925
+  - id: box
+    provider: Box
+    repo: box/box-openapi
+    path: openapi.json
+    ref: c9699f40439556955358ee23003eb55b87beda2f
+    openapi: "3.0"
+    tier: m
+    bytes: 1821778
+  - id: twilio
+    provider: Twilio (2010 API)
+    repo: twilio/twilio-oai
+    path: spec/json/twilio_api_v2010.json
+    ref: 6891362428239e2b29339718ffb7bd9fb86ff9cb
+    openapi: "3.0"
+    tier: m
+    bytes: 1879653
+  - id: pagerduty
+    provider: PagerDuty
+    repo: PagerDuty/api-schema
+    path: reference/REST/openapiv3.json
+    ref: fa678f13ca90c38adb5a6adc908d0d6f154cc83c
+    openapi: "3.0"
+    tier: l
+    bytes: 2843600
+  - id: plaid
+    provider: Plaid
+    repo: plaid/plaid-openapi
+    path: 2020-09-14.yml
+    ref: a40a661f74180ec2bfb948b9fa6aac22ce20251b
+    openapi: "3.0"
+    tier: l
+    bytes: 3453430
+  - id: asana
+    provider: Asana
+    repo: Asana/openapi
+    path: defs/asana_oas.yaml
+    ref: 466e40b476c01ed5e50543a5616bc83d136aba14
+    openapi: "3.0"
+    tier: l
+    bytes: 3486286
+  - id: openai
+    provider: OpenAI
+    repo: openai/openai-openapi
+    path: openapi.yaml
+    ref: d44afa39875e05ad7009d10641296304554fb35d
+    openapi: "3.0"
+    tier: l
+    bytes: 4339191
+  - id: kubernetes
+    provider: Kubernetes
+    repo: kubernetes/kubernetes
+    path: api/openapi-spec/swagger.json
+    ref: c87bd773e80a6786c0f666a3d13ab660eab0a40e
+    openapi: "2.0"
+    tier: l
+    bytes: 4381165
+  - id: stripe
+    provider: Stripe
+    repo: stripe/openapi
+    path: openapi/spec3.json
+    ref: bcfd59f49dcac84a84d63d304c62793dff6e5916
+    openapi: "3.0"
+    tier: xl
+    bytes: 8317513
+  - id: github
+    provider: GitHub REST
+    repo: github/rest-api-description
+    path: descriptions/api.github.com/api.github.com.json
+    ref: bbd57e64767616df3b37792a1186166334043761
+    openapi: "3.0"
+    tier: xl
+    bytes: 14275550
+  - id: cloudflare
+    provider: Cloudflare
+    repo: cloudflare/api-schemas
+    path: openapi.json
+    ref: 10837344ff6c5abd1d5602f1aeebe82ef353fa32
+    openapi: "3.0"
+    tier: xl
+    bytes: 29783789

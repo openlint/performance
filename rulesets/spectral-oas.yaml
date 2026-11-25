@@ -1,0 +1,3 @@
+# The same ruleset for every Spectral-format tool, so engines are compared on equal work.
+# spectral:oas is frozen at 1.0.0 in OpenLint 1.3+, so changes in timing come from the engine.
+extends: ["spectral:oas"]

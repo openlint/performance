@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Performance · OpenLint</title>
+<meta name="description" content="How fast is each OpenLint release, and other API linters, on real OpenAPI documents from Stripe, GitHub, Cloudflare, OpenAI and other leading API providers?">
+<link rel="icon" type="image/svg+xml" href="favicon.svg">
+<link rel="stylesheet" href="site.css">
+<style>
+  main { max-width: 980px; }
+  .table-wrap { overflow-x: auto; margin: 1rem 0; }
+  table { border-collapse: collapse; width: 100%; font-size: 14px; }
+  th, td { text-align: right; padding: .45rem .55rem; border-top: 1px solid var(--rule); white-space: nowrap; }
+  th:first-child, td:first-child { text-align: left; }
+  th { font-weight: 600; font-size: 13px; }
+  td small { display: block; color: var(--muted); font-size: 12px; white-space: normal; max-width: 14em; margin-left: auto; }
+  .slower { color: #c0392b; font-weight: 600; }
+  .faster { color: var(--accent); font-weight: 600; }
+  .bad { color: var(--muted); }
+  .toggle { display: flex; gap: .4rem; flex-wrap: wrap; margin: .6rem 0; }
+  .toggle button { font: inherit; font-size: 14px; padding: .25rem .8rem; border: 1px solid var(--rule); border-radius: 999px; background: none; color: var(--ink); cursor: pointer; }
+  .toggle button[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--bg); }
+  .tier { display: inline-block; font-size: 11px; padding: 0 .4rem; border-radius: 4px; border: 1px solid var(--rule); color: var(--muted); margin-left: .3rem; text-transform: uppercase; }
+  code { font-size: 13px; }
+</style>
+</head>
+<body>
+<main>
+  <nav class="crumbs"><a href="https://openlint.org/">openlint</a> / <a href="./">performance</a></nav>
+  <h1>Performance</h1>
+  <p class="lede">How fast is each OpenLint release on real OpenAPI documents, and did a change make it slower? Every release since 1.0.0, alongside Spectral and other API linters, on descriptions published by leading API providers on GitHub.</p>
+  <p class="muted" id="meta">Loading…</p>
+
+  <h2>OpenLint, release by release</h2>
+  <p>Median time to lint each document with the same ruleset (<code>spectral:oas</code>). Each release is compared with the one before it; a change of more than 10% is highlighted.</p>
+  <div class="toggle" id="metric-releases"></div>
+  <div class="table-wrap" id="releases"></div>
+
+  <h2>Alongside other linters</h2>
+  <p>The latest release of each tool on the same documents. OpenLint, Spectral, vacuum and the IBM validator run the same <code>spectral:oas</code> ruleset; Redocly can't read it and runs its own recommended rules. Each tool implements the rules its own way, so the problem counts differ: compare the times as a guide, not a race.</p>
+  <div class="toggle" id="metric-tools"></div>
+  <div class="table-wrap" id="tools"></div>
+
+  <h2>The documents</h2>
+  <p>Each is pinned to a commit in the provider's own repository, and downloaded at run time, so every run lints identical bytes. Want your API included? <a href="https://github.com/openlint/performance">Open a pull request</a> adding it to <code>corpus.yaml</code>.</p>
+  <div class="table-wrap" id="docs"></div>
+
+  <h2>How it's measured</h2>
+  <ul>
+    <li>Each tool runs from the command line, as users run it: the time includes starting the tool. Output goes to a file.</li>
+    <li>One untimed warm-up, then 5 timed runs for documents under 2 MB and 3 for larger ones. The table shows the median; peak memory is the largest resident set size seen.</li>
+    <li>All releases run on the same machine in the same run, so comparisons between releases are fair. Absolute times depend on the machine, which is shown above.</li>
+    <li>A run that takes more than 10 minutes is stopped and shown as a timeout.</li>
+  </ul>
+  <p class="muted">Raw data: <a href="latest.json">latest.json</a> · <a href="history.jsonl">history.jsonl</a>. Source: <a href="https://github.com/openlint/performance">openlint/performance</a>.</p>
+  <footer>
+    <p>An <a href="https://apicommons.org">API Commons</a> effort · <a href="https://github.com/openlint/performance">github.com/openlint/performance</a> · <a href="https://conformance.openlint.org/">Conformance</a> · <a href="https://openlint.org/roadmap/">Roadmap</a> · <a href="https://github.com/openlint/.github/blob/main/CODE_OF_CONDUCT.md">Code of Conduct</a> · <a href="https://openlint.org/privacy/">Privacy</a> · <a href="https://openlint.org/terms/">Terms</a></p>
+  </footer>
+</main>
+<script>
+const esc = (s) => String(s ?? "").replace(/[&<>"]/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;" })[c]);
+const size = (b) => b >= 1e6 ? (b / 1e6).toFixed(1) + " MB" : Math.round(b / 1e3) + " KB";
+const secs = (ms) => ms >= 1000 ? (ms / 1000).toFixed(ms >= 10000 ? 0 : 1) + " s" : Math.round(ms) + " ms";
+const METRICS = { time: ["Time", (r) => r.median_ms, secs], memory: ["Memory", (r) => r.peak_mb, (v) => Math.round(v) + " MB"] };
+const semver = (a, b) => a.split(".").map(Number).reduce((d, x, i) => d || x - b.split(".").map(Number)[i], 0);
+
+fetch("latest.json").then((r) => r.json()).then((run) => {
+  const date = new Date(run.date);
+  document.getElementById("meta").textContent = `Last run ${date.toUTCString().slice(5, 22)} UTC · ${run.runner.cpu}, ${run.runner.cores} cores, ${run.runner.memory_gb} GB · Node ${run.runner.node} · ${run.documents.length} documents, ${run.tools.length} tools`;
+  const res = (doc, tool) => run.results.find((r) => r.doc === doc && r.tool === tool);
+  const docLabel = (d) => `${esc(d.provider)}<span class="tier">${d.tier}</span><small>${size(d.bytes)} · OpenAPI ${esc(d.openapi)}</small>`;
+  const failed = (r) => `<span class="bad" title="${esc(r?.detail)}">${r ? esc(r.status) : "–"}</span>${r?.detail ? `<small>${esc(r.detail.replace(/\[ERROR\]\s*/g, "").slice(0, 60))}</small>` : ""}`;
+
+  const versions = run.tools.filter((t) => t.startsWith("openlint@")).sort((a, b) => semver(a.split("@")[1], b.split("@")[1]));
+  const latest = versions.at(-1);
+  const others = [latest, ...run.tools.filter((t) => !t.startsWith("openlint@"))];
+
+  function releases(metric) {
+    const [, get, fmt] = METRICS[metric];
+    let h = `<table><tr><th>Document</th>${versions.map((v) => `<th>${esc(v.replace("openlint@", ""))}</th>`).join("")}</tr>`;
+    for (const d of run.documents) {
+      h += `<tr><td>${docLabel(d)}</td>`;
+      versions.forEach((v, i) => {
+        const r = res(d.id, v);
+        if (!r || r.median_ms == null) { h += `<td>${failed(r)}</td>`; return; }
+        const prev = i ? res(d.id, versions[i - 1]) : null;
+        let cls = "", note = "";
+        if (prev?.median_ms != null) {
+          const pct = (get(r) - get(prev)) / get(prev) * 100;
+          if (Math.abs(pct) > 10) { cls = pct > 0 ? "slower" : "faster"; note = `<small class="${cls}">${pct > 0 ? "+" : ""}${Math.round(pct)}%</small>`; }
+        }
+        h += `<td><span class="${cls}">${fmt(get(r))}</span>${note}</td>`;
+      });
+      h += "</tr>";
+    }
+    document.getElementById("releases").innerHTML = h + "</table>";
+  }
+
+  function tools(metric) {
+    const [, get, fmt] = METRICS[metric];
+    let h = `<table><tr><th>Document</th>${others.map((t) => { const [n, v] = t.split("@"); return `<th>${esc(n)}<small>${esc(v)}</small></th>`; }).join("")}</tr>`;
+    for (const d of run.documents) {
+      h += `<tr><td>${docLabel(d)}</td>`;
+      for (const t of others) {
+        const r = res(d.id, t);
+        h += r?.median_ms != null ? `<td>${fmt(get(r))}<small>${r.problems} problems</small></td>` : `<td>${failed(r)}</td>`;
+      }
+      h += "</tr>";
+    }
+    document.getElementById("tools").innerHTML = h + "</table>";
+  }
+
+  function toggle(id, render) {
+    const el = document.getElementById(id);
+    el.innerHTML = Object.entries(METRICS).map(([k, [label]]) => `<button data-m="${k}" aria-pressed="${k === "time"}">${label}</button>`).join("");
+    el.addEventListener("click", (e) => {
+      const m = e.target.dataset?.m; if (!m) return;
+      el.querySelectorAll("button").forEach((b) => b.setAttribute("aria-pressed", b.dataset.m === m));
+      render(m);
+    });
+    render("time");
+  }
+  toggle("metric-releases", releases);
+  toggle("metric-tools", tools);
+
+  document.getElementById("docs").innerHTML = `<table><tr><th>Provider</th><th>File</th><th>Size</th><th>Commit</th></tr>` + run.documents.map((d) =>
+    `<tr><td>${esc(d.provider)}</td><td style="text-align:left"><a href="https://github.com/${esc(d.repo)}/blob/${esc(d.ref)}/${esc(d.path)}">${esc(d.repo)}/${esc(d.path)}</a></td><td>${size(d.bytes)}</td><td><code>${esc(d.ref.slice(0, 7))}</code></td></tr>`).join("") + "</table>";
+}).catch(() => { document.getElementById("meta").textContent = "No results yet."; });
+</script>
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "openlint-performance",
+  "private": true,
+  "description": "Benchmarks for OpenLint releases and other API linters on real OpenAPI documents from leading API providers.",
+  "license": "Apache-2.0",
+  "type": "module",
+  "scripts": {
+    "fetch": "node fetch.mjs",
+    "tools": "node tools.mjs",
+    "bench": "node run.mjs",
+    "pin": "node fetch.mjs --pin"
+  },
+  "dependencies": {
+    "yaml": "^2.6.0"
+  }
+}
