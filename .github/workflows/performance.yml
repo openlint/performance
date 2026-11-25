@@ -4,7 +4,7 @@ name: Performance
 on:
   push:
     branches: [main]
-    paths: ["site/**"]   # site changes redeploy without re-running the benchmark
+    paths: ["site/**", ".github/workflows/**"]   # these redeploy without re-running the benchmark
   schedule:
     - cron: "0 5 * * *"
   workflow_dispatch:
@@ -20,7 +20,8 @@ permissions:
   id-token: write
 
 concurrency:
-  group: performance
+  # a deploy-only push doesn't wait behind a long benchmark run
+  group: performance-${{ github.event_name == 'push' && 'deploy' || 'bench' }}
   cancel-in-progress: false
 
 jobs:
