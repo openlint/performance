@@ -2,6 +2,9 @@ name: Performance
 
 # Runs weekly, and on the day a new OpenLint release appears on npm.
 on:
+  push:
+    branches: [main]
+    paths: ["site/**"]   # site changes redeploy without re-running the benchmark
   schedule:
     - cron: "0 5 * * *"
   workflow_dispatch:
